@@ -516,7 +516,6 @@ void displayDailyStats(const Cafe& cafe, const Date& date) {
     }
 
     const DailyStatistics* today_ptr = nullptr;
-
     for (const DailyStatistics& day : cafe.stats) {
         if (sameDate(day.date, date)) {
             today_ptr = &day;
@@ -530,8 +529,9 @@ void displayDailyStats(const Cafe& cafe, const Date& date) {
 
     const DailyStatistics& today = *today_ptr;
 
-    cout << "=== Daily Summary for "
-         << today.date.month << "/" << today.date.day << "/" << today.date.year << " ===\n";
+    cout << "\n=== Daily Summary for "
+         << today.date.month << "/" << today.date.day << "/" << today.date.year
+         << " ===\n";
     cout << fixed << setprecision(2);
     cout << "Revenue: $" << today.revenue << "\n";
     cout << "Orders completed: " << today.count_completed << "\n";
