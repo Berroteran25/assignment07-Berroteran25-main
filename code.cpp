@@ -193,18 +193,17 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
         throw runtime_error("Negative value not allowed");
     }
 
-    cout << "Welcome to " << cafe.name << "! Today is "
-         << today.date.month << "/" << today.date.day << "/" << today.date.year << ".\n";
+    cout << "Welcome to " << cafe.name << "!" << "\n";
+    cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << "." << "\n";
 
     size_t n = today.staff_on_duty.size();
 
     if (n == 1) {
-        cout << "Your barista today is " << today.staff_on_duty[0].name << ".\n";
+        cout << "Your barista today is " << today.staff_on_duty[0].name << "." << "\n";
         return;
     }
 
     cout << "Your baristas today are ";
-
     for (size_t i = 0; i < n; i++) {
         cout << today.staff_on_duty[i].name;
         if (i < n - 2) {
@@ -213,8 +212,7 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
             cout << " and ";
         }
     }
-
-    cout << ".\n";
+    cout << "." << "\n";
 }
 
 vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& rng) {
@@ -292,11 +290,11 @@ void abandonOrder(Cafe& cafe, int current_time, Order& order) {
         throw runtime_error("Negative value not allowed");
     }
 
-    DailyStatistics& today = currentStats(cafe);
+    order.status = OrderStatus::Abandoned;
+    order.end_time = current_time;
 
-    if (order.status == OrderStatus::Pending) {
-        order.status = OrderStatus::Abandoned;
-        order.end_time = current_time;
+    if (!cafe.stats.empty()) {
+        DailyStatistics& today = currentStats(cafe);
         today.count_abandoned++;
         if (today.count_pending > 0) {
             today.count_pending--;
@@ -358,8 +356,6 @@ void assignOrderToBarista(Cafe& cafe, int current_time, Order& order, Barista& b
         throw runtime_error("Negative value not allowed");
     }
 
-    DailyStatistics& today = currentStats(cafe);
-
     int prep_time = calcPrepTime(cafe, order, barista);
     order.status = OrderStatus::In_progress;
     order.barista_name = barista.name;
@@ -369,8 +365,11 @@ void assignOrderToBarista(Cafe& cafe, int current_time, Order& order, Barista& b
     barista.busy_until = order.end_time;
     barista.num_orders_handled++;
 
-    if (today.count_pending > 0) {
-        today.count_pending--;
+    if (!cafe.stats.empty()) {
+        DailyStatistics& today = currentStats(cafe);
+        if (today.count_pending > 0) {
+            today.count_pending--;
+        }
     }
 }
 
@@ -386,7 +385,7 @@ void displayOrderStarted(const Order& order) {
 }
 
 void completeOrder(Cafe& cafe, Order& order) {
-    if (order.id <= 0 || order.quantity <= 0 || cafe.stats.empty()) {
+    if (order.id <= 0 || order.quantity <= 0) {
         throw runtime_error("Negative value not allowed");
     }
 
@@ -395,15 +394,17 @@ void completeOrder(Cafe& cafe, Order& order) {
         throw runtime_error("Negative value not allowed");
     }
 
-    DailyStatistics& today = cafe.stats.back();
-
     if (order.status == OrderStatus::Completed || order.status == OrderStatus::Abandoned) {
         throw runtime_error("Negative value not allowed");
     }
 
     order.status = OrderStatus::Completed;
-    today.count_completed++;
-    today.revenue += cafe.menu[item_index].price * order.quantity;
+
+    if (!cafe.stats.empty()) {
+        DailyStatistics& today = currentStats(cafe);
+        today.count_completed++;
+        today.revenue += cafe.menu[item_index].price * order.quantity;
+    }
 }
 
 void displayOrderCompleted(const Order& order) {
