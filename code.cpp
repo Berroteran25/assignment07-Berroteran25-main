@@ -194,7 +194,7 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
     }
 
     cout << "Welcome to " << cafe.name << "! Today is "
-         << today.date.month << "/" << today.date.day << "/" << today.date.year << ". ";
+         << today.date.month << "/" << today.date.day << "/" << today.date.year << ".\n";
 
     size_t n = today.staff_on_duty.size();
 
@@ -207,6 +207,7 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
 
     for (size_t i = 0; i < n; i++) {
         cout << today.staff_on_duty[i].name;
+
         if (i < n - 2) {
             cout << ", ";
         } else if (i == n - 2) {
