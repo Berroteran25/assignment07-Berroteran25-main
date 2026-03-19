@@ -530,20 +530,20 @@ void displayDailyStats(const Cafe& cafe, const Date& date) {
     const DailyStatistics& today = *today_ptr;
 
     cout << "\n=== Daily Summary for "
-         << today.date.month << "/" << today.date.day << "/" << today.date.year
-         << " ===\n";
+         << today.date.month << "/" << today.date.day << "/" << today.date.year << " ===\n\n";
+
     cout << fixed << setprecision(2);
     cout << "Revenue: $" << today.revenue << "\n";
     cout << "Orders completed: " << today.count_completed << "\n";
-    cout << "Orders abandoned: " << today.count_abandoned << "\n";
+    cout << "Orders abandoned: " << today.count_abandoned << "\n\n";
+
     cout << "Barista performance:\n";
     cout << "---------------------------\n";
     cout << left << setw(12) << "Name" << setw(10) << "Orders" << "\n";
     cout << "---------------------------\n";
 
     for (const Barista& barista : today.staff_on_duty) {
-        cout << left << setw(12) << barista.name
-             << setw(10) << barista.num_orders_handled << "\n";
+        cout << left << setw(12) << barista.name << setw(10) << barista.num_orders_handled << "\n";
     }
 
     cout << "---------------------------\n";
