@@ -189,6 +189,7 @@ vector<Barista> getStaff(const Cafe& cafe, double p, std::mt19937& rng) {
 
     return on_duty;
 }
+
 void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
     if (cafe.name == "missing" || !validDate(today.date) || today.staff_on_duty.empty()) {
         throw runtime_error("Negative value not allowed");
@@ -246,10 +247,10 @@ Order generateOrder(int current_time, std::mt19937& rng) {
 
     Order order;
     order.id = Order::next_id++;
-    order.quantity = drawUniformInt(1, 3, rng);
     order.menu_item_name = static_cast<MenuItemNames>(
         drawUniformInt(0, static_cast<int>(MenuItemNames::Num_Items) - 1, rng)
     );
+    order.quantity = drawUniformInt(1, 3, rng);
     order.status = OrderStatus::Pending;
     order.customer_arrival_time = current_time;
     order.barista_name = "missing";
