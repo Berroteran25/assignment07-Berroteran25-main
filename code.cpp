@@ -356,11 +356,12 @@ int calcPrepTime(const Cafe& cafe, const Order& order, const Barista& barista) {
 }
 
 void assignOrderToBarista(Cafe& cafe, int current_time, Order& order, Barista& barista) {
-    if (current_time < 0 || order.status != OrderStatus::Pending) {
+    if (current_time < 0 || order.status != OrderStatus::Pending || barista.speed_factor <= 0.0) {
         throw runtime_error("Negative value not allowed");
     }
 
     int prep_time = calcPrepTime(cafe, order, barista);
+
     order.status = OrderStatus::In_progress;
     order.barista_name = barista.name;
     order.start_time = current_time;
