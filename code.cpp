@@ -228,7 +228,7 @@ vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& 
         int inter_arrival_time = static_cast<int>(floor(-log(u) / lambda));
         current_time += inter_arrival_time;
 
-        if (current_time > closing_time) {
+        if (current_time >= closing_time) {
             break;
         }
 
