@@ -28,7 +28,7 @@ int main() {
     Parameters params;
     params.max_waiting_time = 10;
     params.closing_time = 600;
-    params.show_up_probability = 0.5;
+    params.p = 0.5;
     params.lambda = 0.2;
 
     int seed = 0;

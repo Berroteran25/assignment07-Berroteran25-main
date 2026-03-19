@@ -533,27 +533,40 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
 }
 
 void displayDailyStats(const Cafe& cafe, const Date& date) {
-    if (!validDate(date)) {
+    if (!validDate(date) || cafe.stats.empty()) {
         throw runtime_error("Negative value not allowed");
     }
 
-    const DailyStatistics& today = findStatsByDate(cafe, date);
+    const DailyStatistics* today_ptr = nullptr;
 
-    cout << "\n=== Daily Summary for "
-         << date.month << "/" << date.day << "/" << date.year << " ===\n\n";
+    for (const DailyStatistics& day : cafe.stats) {
+        if (day.date.month == date.month &&
+            day.date.day == date.day &&
+            day.date.year == date.year) {
+            today_ptr = &day;
+            break;
+        }
+    }
 
-    cout << fixed << setprecision(2);
-    cout << "Revenue: $" << today.revenue << "\n";
+    if (today_ptr == nullptr) {
+        throw runtime_error("Negative value not allowed");
+    }
+
+    const DailyStatistics& today = *today_ptr;
+
+    cout << "=== Daily Summary for "
+         << date.month << "/" << date.day << "/" << date.year << " ===\n";
+    cout << "Revenue: $" << fixed << setprecision(2) << today.revenue << "\n";
     cout << "Orders completed: " << today.count_completed << "\n";
-    cout << "Orders abandoned: " << today.count_abandoned << "\n\n";
-
+    cout << "Orders abandoned: " << today.count_abandoned << "\n";
     cout << "Barista performance:\n";
     cout << "---------------------------\n";
     cout << left << setw(12) << "Name" << setw(10) << "Orders" << "\n";
     cout << "---------------------------\n";
 
     for (const Barista& barista : today.staff_on_duty) {
-        cout << left << setw(12) << barista.name << setw(10) << barista.num_orders_handled << "\n";
+        cout << left << setw(12) << barista.name
+             << setw(10) << barista.num_orders_handled << "\n";
     }
 
     cout << "---------------------------\n";
