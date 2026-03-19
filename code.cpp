@@ -511,10 +511,6 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
 }
 
 void displayDailyStats(const Cafe& cafe, const Date& date) {
-    if (cafe.stats.empty()) {
-        throw runtime_error("Negative value not allowed");
-    }
-
     const DailyStatistics* today = nullptr;
 
     for (const DailyStatistics& day : cafe.stats) {
@@ -526,13 +522,18 @@ void displayDailyStats(const Cafe& cafe, const Date& date) {
         }
     }
 
+    if (today == nullptr) {
+        throw std::runtime_error("Negative value not allowed");
+    }
 
     cout << "\n=== Daily Summary for "
          << date.month << "/" << date.day << "/" << date.year << " ===\n\n";
+
     cout << fixed << setprecision(2);
     cout << "Revenue: $" << today->revenue << "\n";
     cout << "Orders completed: " << today->count_completed << "\n";
-    cout << "Orders abandoned: " << today->count_abandoned << "\n";
+    cout << "Orders abandoned: " << today->count_abandoned << "\n\n";
+
     cout << "Barista performance:\n";
     cout << "---------------------------\n";
     cout << left << setw(12) << "Name" << setw(10) << "Orders" << "\n";
