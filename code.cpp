@@ -207,7 +207,6 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
 
     for (size_t i = 0; i < n; i++) {
         cout << today.staff_on_duty[i].name;
-
         if (i < n - 2) {
             cout << ", ";
         } else if (i == n - 2) {
@@ -387,14 +386,18 @@ void displayOrderStarted(const Order& order) {
 }
 
 void completeOrder(Cafe& cafe, Order& order) {
-    if (order.status != OrderStatus::In_progress) {
+    if (order.id <= 0 || order.quantity <= 0 || cafe.stats.empty()) {
         throw runtime_error("Negative value not allowed");
     }
 
-    DailyStatistics& today = currentStats(cafe);
     int item_index = static_cast<int>(order.menu_item_name);
+    if (item_index < 0 || item_index >= static_cast<int>(cafe.menu.size())) {
+        throw runtime_error("Negative value not allowed");
+    }
 
-    if (item_index < 0 || item_index >= static_cast<int>(cafe.menu.size()) || order.quantity <= 0) {
+    DailyStatistics& today = cafe.stats.back();
+
+    if (order.status == OrderStatus::Completed || order.status == OrderStatus::Abandoned) {
         throw runtime_error("Negative value not allowed");
     }
 
