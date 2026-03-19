@@ -515,22 +515,24 @@ void displayDailyStats(const Cafe& cafe, const Date& date) {
         throw runtime_error("Negative value not allowed");
     }
 
-    const DailyStatistics* today_ptr = nullptr;
-    for (const DailyStatistics& day : cafe.stats) {
-        if (sameDate(day.date, date)) {
-            today_ptr = &day;
+    int found_index = -1;
+    for (int i = 0; i < static_cast<int>(cafe.stats.size()); i++) {
+        if (cafe.stats[i].date.month == date.month &&
+            cafe.stats[i].date.day == date.day &&
+            cafe.stats[i].date.year == date.year) {
+            found_index = i;
             break;
         }
     }
 
-    if (today_ptr == nullptr) {
+    if (found_index == -1) {
         throw runtime_error("Negative value not allowed");
     }
 
-    const DailyStatistics& today = *today_ptr;
+    const DailyStatistics& today = cafe.stats[found_index];
 
     cout << "\n=== Daily Summary for "
-         << today.date.month << "/" << today.date.day << "/" << today.date.year << " ===\n\n";
+         << date.month << "/" << date.day << "/" << date.year << " ===\n\n";
 
     cout << fixed << setprecision(2);
     cout << "Revenue: $" << today.revenue << "\n";
@@ -543,7 +545,8 @@ void displayDailyStats(const Cafe& cafe, const Date& date) {
     cout << "---------------------------\n";
 
     for (const Barista& barista : today.staff_on_duty) {
-        cout << left << setw(12) << barista.name << setw(10) << barista.num_orders_handled << "\n";
+        cout << left << setw(12) << barista.name
+             << setw(10) << barista.num_orders_handled << "\n";
     }
 
     cout << "---------------------------\n";
