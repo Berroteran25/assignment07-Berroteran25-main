@@ -222,16 +222,29 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
         throw runtime_error("Negative value not allowed");
     }
 
-    cout << "Welcome to " << cafe.name << "!\n\n";
+    cout << "Welcome to " << cafe.name << "!\n";
     cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << ".\n";
+
+    size_t n = today.staff_on_duty.size();
+
+    if (n == 1) {
+        cout << "Your barista today is " << today.staff_on_duty[0].name << ".\n";
+        return;
+    }
+
     cout << "Your baristas today are ";
 
-    for (size_t i = 0; i < today.staff_on_duty.size(); i++) {
+    for (size_t i = 0; i < n; i++) {
         cout << today.staff_on_duty[i].name;
-        if (i + 2 < today.staff_on_duty.size()) {
+
+        if (i < n - 2) {
             cout << ", ";
-        } else if (i + 1 < today.staff_on_duty.size()) {
-            cout << " and ";
+        } else if (i == n - 2) {
+            if (n > 2) {
+                cout << ", and ";
+            } else {
+                cout << " and ";
+            }
         }
     }
 
@@ -239,7 +252,7 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
 }
 
 vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& rng) {
-    if (lambda <= 0.0 || closing_time < 0) {
+    if (lambda <= 0.0 || closing_time <= 0) {
         throw runtime_error("Negative value not allowed");
     }
 
