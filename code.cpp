@@ -347,6 +347,10 @@ int calcPrepTime(const Cafe& cafe, const Order& order, const Barista& barista) {
         throw runtime_error("Negative value not allowed");
     }
 
+    if (cafe.menu[item_index].prep_time <= 0) {
+        throw runtime_error("Negative value not allowed");
+    }
+
     double base_time = static_cast<double>(cafe.menu[item_index].prep_time) * order.quantity;
     return static_cast<int>(ceil(base_time / barista.speed_factor));
 }
