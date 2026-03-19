@@ -142,8 +142,12 @@ bool drawBernoulli(double p, std::mt19937& rng) {
 }
 
 int drawUniformInt(int min, int max, std::mt19937& rng) {
-    if (min >= max) {
+    if (min > max) {
         throw runtime_error("Negative value not allowed");
+    }
+
+    if (min == max) {
+        return min;
     }
 
     uniform_int_distribution<int> dist(min, max);
