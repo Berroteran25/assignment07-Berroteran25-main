@@ -222,29 +222,27 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
         throw runtime_error("Negative value not allowed");
     }
 
-    cout << "Welcome to " << cafe.name << "! ";
-    cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << ". ";
+    cout << "Welcome to " << cafe.name << "!" << "\n";
+    cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << "." << "\n";
 
-    size_t n = today.staff_on_duty.size();
-
-    if (n == 1) {
-        cout << "Your barista today is " << today.staff_on_duty[0].name << ".\n";
+    if (today.staff_on_duty.size() == 1) {
+        cout << "Your barista today is " << today.staff_on_duty[0].name << "." << "\n";
         return;
     }
 
     cout << "Your baristas today are ";
 
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < today.staff_on_duty.size(); i++) {
         cout << today.staff_on_duty[i].name;
 
-        if (i < n - 2) {
+        if (i < today.staff_on_duty.size() - 2) {
             cout << ", ";
-        } else if (i == n - 2) {
+        } else if (i == today.staff_on_duty.size() - 2) {
             cout << " and ";
         }
     }
 
-    cout << ".\n";
+    cout << "." << "\n";
 }
 
 vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& rng) {
