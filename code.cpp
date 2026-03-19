@@ -511,40 +511,35 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
 }
 
 void displayDailyStats(const Cafe& cafe, const Date& date) {
-    int found_index = -1;
+    for (const DailyStatistics& today : cafe.stats) {
+        if (today.date.month == date.month &&
+            today.date.day == date.day &&
+            today.date.year == date.year) {
 
-    for (int i = 0; i < static_cast<int>(cafe.stats.size()); i++) {
-        if (cafe.stats[i].date.month == date.month &&
-            cafe.stats[i].date.day == date.day &&
-            cafe.stats[i].date.year == date.year) {
-            found_index = i;
-            break;
+            cout << "\n=== Daily Summary for "
+                 << today.date.month << "/" << today.date.day << "/" << today.date.year
+                 << " ===\n";
+
+            cout << fixed << setprecision(2);
+            cout << "Revenue: $" << today.revenue << "\n";
+            cout << "Orders completed: " << today.count_completed << "\n";
+            cout << "Orders abandoned: " << today.count_abandoned << "\n";
+
+            cout << "Barista performance:\n";
+            cout << "---------------------------\n";
+            cout << left << setw(12) << "Name" << setw(10) << "Orders" << "\n";
+            cout << "---------------------------\n";
+
+            for (const Barista& barista : today.staff_on_duty) {
+                cout << left << setw(12) << barista.name
+                     << setw(10) << barista.num_orders_handled << "\n";
+            }
+
+            cout << "---------------------------\n";
+            return;
         }
     }
 
-    if (found_index == -1) {
-        throw std::runtime_error("Negative value not allowed");
-    }
-
-    const DailyStatistics& today = cafe.stats[found_index];
-
-    cout << "\n=== Daily Summary for "
-         << date.month << "/" << date.day << "/" << date.year << " ===\n\n";
-
-    cout << fixed << setprecision(2);
-    cout << "Revenue: $" << today.revenue << "\n";
-    cout << "Orders completed: " << today.count_completed << "\n";
-    cout << "Orders abandoned: " << today.count_abandoned << "\n\n";
-
-    cout << "Barista performance:\n";
-    cout << "---------------------------\n";
-    cout << left << setw(12) << "Name" << setw(10) << "Orders" << "\n";
-    cout << "---------------------------\n";
-
-    for (const Barista& barista : today.staff_on_duty) {
-        cout << left << setw(12) << barista.name
-             << setw(10) << barista.num_orders_handled << "\n";
-    }
-
-    cout << "---------------------------\n";
+    cout << ">>> No statistics available for "
+         << date.month << "/" << date.day << "/" << date.year << ".\n";
 }
