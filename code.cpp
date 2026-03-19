@@ -511,40 +511,37 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
 }
 
 void displayDailyStats(const Cafe& cafe, const Date& date) {
-    if (!validDate(date) || cafe.stats.empty()) {
+    if (cafe.stats.empty()) {
         throw runtime_error("Negative value not allowed");
     }
 
-    int found_index = -1;
-    for (int i = 0; i < static_cast<int>(cafe.stats.size()); i++) {
-        if (cafe.stats[i].date.month == date.month &&
-            cafe.stats[i].date.day == date.day &&
-            cafe.stats[i].date.year == date.year) {
-            found_index = i;
+    const DailyStatistics* today = nullptr;
+
+    for (const DailyStatistics& day : cafe.stats) {
+        if (day.date.month == date.month &&
+            day.date.day == date.day &&
+            day.date.year == date.year) {
+            today = &day;
             break;
         }
     }
 
-    if (found_index == -1) {
+    if (today == nullptr) {
         throw runtime_error("Negative value not allowed");
     }
 
-    const DailyStatistics& today = cafe.stats[found_index];
-
     cout << "\n=== Daily Summary for "
          << date.month << "/" << date.day << "/" << date.year << " ===\n\n";
-
     cout << fixed << setprecision(2);
-    cout << "Revenue: $" << today.revenue << "\n";
-    cout << "Orders completed: " << today.count_completed << "\n";
-    cout << "Orders abandoned: " << today.count_abandoned << "\n\n";
-
+    cout << "Revenue: $" << today->revenue << "\n";
+    cout << "Orders completed: " << today->count_completed << "\n";
+    cout << "Orders abandoned: " << today->count_abandoned << "\n";
     cout << "Barista performance:\n";
     cout << "---------------------------\n";
     cout << left << setw(12) << "Name" << setw(10) << "Orders" << "\n";
     cout << "---------------------------\n";
 
-    for (const Barista& barista : today.staff_on_duty) {
+    for (const Barista& barista : today->staff_on_duty) {
         cout << left << setw(12) << barista.name
              << setw(10) << barista.num_orders_handled << "\n";
     }
