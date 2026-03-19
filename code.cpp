@@ -526,9 +526,6 @@ void displayDailyStats(const Cafe& cafe, const Date& date) {
         }
     }
 
-    if (today == nullptr) {
-        throw runtime_error("Negative value not allowed");
-    }
 
     cout << "\n=== Daily Summary for "
          << date.month << "/" << date.day << "/" << date.year << " ===\n\n";
