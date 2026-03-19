@@ -446,9 +446,10 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
     vector<int> arrivals = generateArrivalTimes(params.lambda, params.closing_time, rng);
     int arrival_index = 0;
 
-    for (int current_time = 0; current_time <= params.closing_time; current_time++) {
+    for (int current_time = 0; current_time < params.closing_time; current_time++) {
         DailyStatistics& active = currentStats(cafe);
 
+        // Complete orders finishing now
         for (Order& order : active.orders) {
             if (order.status == OrderStatus::In_progress && order.end_time == current_time) {
                 completeOrder(cafe, order);
@@ -456,6 +457,7 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
             }
         }
 
+        // Add arrivals at this minute
         while (arrival_index < static_cast<int>(arrivals.size()) &&
                arrivals[arrival_index] == current_time) {
             Order order = generateOrder(current_time, rng);
@@ -465,6 +467,7 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
             arrival_index++;
         }
 
+        // Abandon orders that have waited too long
         for (Order& order : active.orders) {
             if (order.status == OrderStatus::Pending &&
                 current_time - order.customer_arrival_time > params.max_waiting_time) {
@@ -473,6 +476,7 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
             }
         }
 
+        // Assign oldest pending orders while baristas are available
         while (anyBaristaAvailable(cafe, current_time)) {
             int next_pending_index = -1;
 
@@ -495,7 +499,11 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
         }
     }
 
-    int current_time = params.closing_time + 1;
+    // After closing, pending orders are no longer counted
+    currentStats(cafe).count_pending = 0;
+
+    // After closing, only finish orders already in progress
+    int current_time = params.closing_time;
     while (hasInProgressOrders(cafe)) {
         DailyStatistics& active = currentStats(cafe);
 
