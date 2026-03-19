@@ -177,7 +177,9 @@ vector<Barista> getStaff(const Cafe& cafe, double p, std::mt19937& rng) {
             throw runtime_error("Negative value not allowed");
         }
 
-        if (barista.is_manager || drawBernoulli(p, rng)) {
+        bool shows_up = drawBernoulli(p, rng);   // consume RNG for every barista
+
+        if (barista.is_manager || shows_up) {
             Barista copy = barista;
             copy.num_orders_handled = 0;
             copy.busy_until = 0;
@@ -187,7 +189,6 @@ vector<Barista> getStaff(const Cafe& cafe, double p, std::mt19937& rng) {
 
     return on_duty;
 }
-
 void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
     if (cafe.name == "missing" || !validDate(today.date) || today.staff_on_duty.empty()) {
         throw runtime_error("Negative value not allowed");
