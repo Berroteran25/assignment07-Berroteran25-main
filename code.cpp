@@ -1,6 +1,6 @@
 #include "code.h"
 #include <iostream>
-#include <iomanip>   // std::setw, std::setprecision
+#include <iomanip>
 #include <stdexcept>
 #include <cmath>
 #include <sstream>
@@ -46,28 +46,45 @@ static std::ostream& operator<<(std::ostream& os, const MenuItemNames& name) {
 
 int Order::next_id = 1;
 
+
 // ============================================================
 // Internal helpers
 // ============================================================
 
-static string formatTime(int minutes_after_open) {
-    if (minutes_after_open < 0) {
+static DailyStatistics& currentStats(Cafe& cafe) {
+    if (cafe.stats.empty()) {
         throw runtime_error("Negative value not allowed");
     }
+    return cafe.stats.back();
+}
 
-    int total_minutes = 12 * 60 + minutes_after_open;
-    int hour24 = total_minutes / 60;
-    int minute = total_minutes % 60;
-
-    string suffix = (hour24 < 12) ? "a.m." : "p.m.";
-    int hour12 = hour24 % 12;
-    if (hour12 == 0) {
-        hour12 = 12;
+static const DailyStatistics& currentStats(const Cafe& cafe) {
+    if (cafe.stats.empty()) {
+        throw runtime_error("Negative value not allowed");
     }
+    return cafe.stats.back();
+}
 
-    ostringstream out;
-    out << hour12 << ":" << setw(2) << setfill('0') << minute << " " << suffix;
-    return out.str();
+static bool sameDate(const Date& a, const Date& b) {
+    return a.month == b.month && a.day == b.day && a.year == b.year;
+}
+
+static DailyStatistics& findStatsByDate(Cafe& cafe, const Date& date) {
+    for (DailyStatistics& day : cafe.stats) {
+        if (sameDate(day.date, date)) {
+            return day;
+        }
+    }
+    throw runtime_error("Negative value not allowed");
+}
+
+static const DailyStatistics& findStatsByDate(const Cafe& cafe, const Date& date) {
+    for (const DailyStatistics& day : cafe.stats) {
+        if (sameDate(day.date, date)) {
+            return day;
+        }
+    }
+    throw runtime_error("Negative value not allowed");
 }
 
 static bool validDate(const Date& date) {
@@ -89,14 +106,48 @@ static bool validDate(const Date& date) {
     return date.day <= days_in_month;
 }
 
+static string formatTime(int minutes_after_open) {
+    if (minutes_after_open < 0) {
+        throw runtime_error("Negative value not allowed");
+    }
+
+    int total_minutes = 12 * 60 + minutes_after_open;
+    int hour24 = total_minutes / 60;
+    int minute = total_minutes % 60;
+
+    string suffix = "p.m.";
+    int hour12 = hour24;
+
+    if (hour24 == 0) {
+        hour12 = 12;
+        suffix = "a.m.";
+    } else if (hour24 < 12) {
+        suffix = "a.m.";
+    } else if (hour24 == 12) {
+        suffix = "p.m.";
+    } else {
+        hour12 = hour24 - 12;
+        suffix = "p.m.";
+    }
+
+    ostringstream out;
+    out << hour12 << ":" << setw(2) << setfill('0') << minute << " " << suffix;
+    return out.str();
+}
+
 static bool hasInProgressOrders(const Cafe& cafe) {
-    for (const Order& order : cafe.stats.orders) {
+    if (cafe.stats.empty()) {
+        return false;
+    }
+
+    for (const Order& order : currentStats(cafe).orders) {
         if (order.status == OrderStatus::In_progress) {
             return true;
         }
     }
     return false;
 }
+
 
 // ============================================================
 // Required functions
@@ -112,14 +163,8 @@ bool drawBernoulli(double p, std::mt19937& rng) {
 }
 
 int drawUniformInt(int min, int max, std::mt19937& rng) {
-    if (min < 0 || max < 0) {
+    if (min >= max) {
         throw runtime_error("Negative value not allowed");
-    }
-    if (min > max) {
-        throw runtime_error("Negative value not allowed");
-    }
-    if (min == max) {
-        return min;
     }
 
     uniform_int_distribution<int> dist(min, max);
@@ -145,29 +190,31 @@ vector<Barista> getStaff(const Cafe& cafe, double p, std::mt19937& rng) {
         throw runtime_error("Negative value not allowed");
     }
 
-    vector<Barista> staff_today;
+    vector<Barista> on_duty;
 
     for (const Barista& barista : cafe.staff) {
         if (barista.speed_factor <= 0.0) {
             throw runtime_error("Negative value not allowed");
         }
 
-        if (barista.is_manager || drawBernoulli(p, rng)) {
+        if (barista.is_manager) {
             Barista copy = barista;
             copy.num_orders_handled = 0;
             copy.busy_until = 0;
-            staff_today.push_back(copy);
+            on_duty.push_back(copy);
+        } else if (drawBernoulli(p, rng)) {
+            Barista copy = barista;
+            copy.num_orders_handled = 0;
+            copy.busy_until = 0;
+            on_duty.push_back(copy);
         }
     }
 
-    return staff_today;
+    return on_duty;
 }
 
 void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
-    if (cafe.name == "missing" || !validDate(today.date)) {
-        throw runtime_error("Negative value not allowed");
-    }
-    if (today.staff_on_duty.empty()) {
+    if (cafe.name == "missing" || !validDate(today.date) || today.staff_on_duty.empty()) {
         throw runtime_error("Negative value not allowed");
     }
 
@@ -220,10 +267,10 @@ Order generateOrder(int current_time, std::mt19937& rng) {
     order.menu_item_name = static_cast<MenuItemNames>(
         drawUniformInt(0, static_cast<int>(MenuItemNames::Num_Items) - 1, rng)
     );
-    order.barista_name = "missing";
     order.quantity = drawUniformInt(1, 3, rng);
     order.status = OrderStatus::Pending;
     order.customer_arrival_time = current_time;
+    order.barista_name = "missing";
     order.start_time = 0;
     order.end_time = 0;
 
@@ -246,7 +293,9 @@ bool anyBaristaAvailable(const Cafe& cafe, int current_time) {
         throw runtime_error("Negative value not allowed");
     }
 
-    for (const Barista& barista : cafe.stats.staff_on_duty) {
+    const DailyStatistics& today = currentStats(cafe);
+
+    for (const Barista& barista : today.staff_on_duty) {
         if (barista.busy_until <= current_time) {
             return true;
         }
@@ -256,19 +305,18 @@ bool anyBaristaAvailable(const Cafe& cafe, int current_time) {
 }
 
 void abandonOrder(Cafe& cafe, int current_time, Order& order) {
-    if (current_time < 0) {
+    if (current_time < 0 || order.id <= 0) {
         throw runtime_error("Negative value not allowed");
     }
-    if (order.id <= 0) {
-        throw runtime_error("Negative value not allowed");
-    }
+
+    DailyStatistics& today = currentStats(cafe);
 
     if (order.status == OrderStatus::Pending) {
         order.status = OrderStatus::Abandoned;
         order.end_time = current_time;
-        cafe.stats.count_abandoned++;
-        if (cafe.stats.count_pending > 0) {
-            cafe.stats.count_pending--;
+        today.count_abandoned++;
+        if (today.count_pending > 0) {
+            today.count_pending--;
         }
     }
 }
@@ -287,10 +335,11 @@ Barista& findAvailableBarista(Cafe& cafe, int current_time, std::mt19937& rng) {
         throw runtime_error("Negative value not allowed");
     }
 
+    DailyStatistics& today = currentStats(cafe);
     vector<int> available_indices;
 
-    for (int i = 0; i < static_cast<int>(cafe.stats.staff_on_duty.size()); i++) {
-        if (cafe.stats.staff_on_duty[i].busy_until <= current_time) {
+    for (int i = 0; i < static_cast<int>(today.staff_on_duty.size()); i++) {
+        if (today.staff_on_duty[i].busy_until <= current_time) {
             available_indices.push_back(i);
         }
     }
@@ -299,8 +348,12 @@ Barista& findAvailableBarista(Cafe& cafe, int current_time, std::mt19937& rng) {
         throw runtime_error("Negative value not allowed");
     }
 
-    int chosen_pos = drawUniformInt(0, static_cast<int>(available_indices.size()) - 1, rng);
-    return cafe.stats.staff_on_duty[available_indices[chosen_pos]];
+    if (available_indices.size() == 1) {
+        return today.staff_on_duty[available_indices[0]];
+    }
+
+    int chosen = drawUniformInt(0, static_cast<int>(available_indices.size()) - 1, rng);
+    return today.staff_on_duty[available_indices[chosen]];
 }
 
 int calcPrepTime(const Cafe& cafe, const Order& order, const Barista& barista) {
@@ -308,25 +361,23 @@ int calcPrepTime(const Cafe& cafe, const Order& order, const Barista& barista) {
         throw runtime_error("Negative value not allowed");
     }
 
-    int menu_index = static_cast<int>(order.menu_item_name);
-    if (menu_index < 0 || menu_index >= static_cast<int>(cafe.menu.size())) {
+    int item_index = static_cast<int>(order.menu_item_name);
+    if (item_index < 0 || item_index >= static_cast<int>(cafe.menu.size())) {
         throw runtime_error("Negative value not allowed");
     }
 
-    double total_base_time = cafe.menu[menu_index].prep_time * order.quantity;
-    return static_cast<int>(ceil(total_base_time / barista.speed_factor));
+    double base_time = static_cast<double>(cafe.menu[item_index].prep_time) * order.quantity;
+    return static_cast<int>(ceil(base_time / barista.speed_factor));
 }
 
 void assignOrderToBarista(Cafe& cafe, int current_time, Order& order, Barista& barista) {
-    if (current_time < 0) {
+    if (current_time < 0 || order.status != OrderStatus::Pending) {
         throw runtime_error("Negative value not allowed");
     }
-    if (order.status != OrderStatus::Pending) {
-        throw runtime_error("Negative value not allowed");
-    }
+
+    DailyStatistics& today = currentStats(cafe);
 
     int prep_time = calcPrepTime(cafe, order, barista);
-
     order.status = OrderStatus::In_progress;
     order.barista_name = barista.name;
     order.start_time = current_time;
@@ -335,8 +386,8 @@ void assignOrderToBarista(Cafe& cafe, int current_time, Order& order, Barista& b
     barista.busy_until = order.end_time;
     barista.num_orders_handled++;
 
-    if (cafe.stats.count_pending > 0) {
-        cafe.stats.count_pending--;
+    if (today.count_pending > 0) {
+        today.count_pending--;
     }
 }
 
@@ -356,14 +407,16 @@ void completeOrder(Cafe& cafe, Order& order) {
         throw runtime_error("Negative value not allowed");
     }
 
-    int menu_index = static_cast<int>(order.menu_item_name);
-    if (menu_index < 0 || menu_index >= static_cast<int>(cafe.menu.size())) {
+    DailyStatistics& today = currentStats(cafe);
+    int item_index = static_cast<int>(order.menu_item_name);
+
+    if (item_index < 0 || item_index >= static_cast<int>(cafe.menu.size()) || order.quantity <= 0) {
         throw runtime_error("Negative value not allowed");
     }
 
     order.status = OrderStatus::Completed;
-    cafe.stats.count_completed++;
-    cafe.stats.revenue += cafe.menu[menu_index].price * order.quantity;
+    today.count_completed++;
+    today.revenue += cafe.menu[item_index].price * order.quantity;
 }
 
 void displayOrderCompleted(const Order& order) {
@@ -376,53 +429,51 @@ void displayOrderCompleted(const Order& order) {
 }
 
 void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, int seed) {
-    if (params.max_waiting_time < 0 || params.closing_time < 0 || seed < 0) {
+    if (!validDate(date) || params.max_waiting_time < 0 || params.closing_time < 0 || params.p < 0.0 || params.p > 1.0 || params.lambda <= 0.0 || seed < 0) {
         throw runtime_error("Negative value not allowed");
     }
-    if (params.lambda <= 0.0) {
-        throw runtime_error("Negative value not allowed");
-    }
-    if (!validDate(date)) {
+    if (cafe.name == "missing" || cafe.menu.empty() || cafe.staff.empty()) {
         throw runtime_error("Negative value not allowed");
     }
 
     Order::next_id = 1;
 
-    cafe.stats = DailyStatistics{};
-    cafe.stats.date = date;
+    DailyStatistics today;
+    today.date = date;
 
     mt19937 rng = initializeRng(seed);
+    today.staff_on_duty = getStaff(cafe, params.p, rng);
 
-    // Change this field name here if your code.h uses a different one.
-    cafe.stats.staff_on_duty = getStaff(cafe, params.show_up_probability, rng);
+    cafe.stats.push_back(today);
 
-    displayOpeningNote(cafe, cafe.stats);
+    displayOpeningNote(cafe, currentStats(cafe));
     cout << "\n";
 
-    vector<int> arrival_times = generateArrivalTimes(params.lambda, params.closing_time, rng);
+    vector<int> arrivals = generateArrivalTimes(params.lambda, params.closing_time, rng);
     int arrival_index = 0;
 
     for (int current_time = 0; current_time <= params.closing_time; current_time++) {
-        // 1. Complete orders finishing now
-        for (Order& order : cafe.stats.orders) {
+        DailyStatistics& active = currentStats(cafe);
+
+        // Complete any orders finishing now
+        for (Order& order : active.orders) {
             if (order.status == OrderStatus::In_progress && order.end_time == current_time) {
                 completeOrder(cafe, order);
                 displayOrderCompleted(order);
             }
         }
 
-        // 2. Add arriving customers
-        while (arrival_index < static_cast<int>(arrival_times.size()) &&
-               arrival_times[arrival_index] == current_time) {
-            Order new_order = generateOrder(current_time, rng);
-            cafe.stats.orders.push_back(new_order);
-            cafe.stats.count_pending++;
-            displayCustomerArrival(cafe.stats.orders.back());
+        // Add new arrivals at this time
+        while (arrival_index < static_cast<int>(arrivals.size()) && arrivals[arrival_index] == current_time) {
+            Order order = generateOrder(current_time, rng);
+            active.orders.push_back(order);
+            active.count_pending++;
+            displayCustomerArrival(active.orders.back());
             arrival_index++;
         }
 
-        // 3. Abandon orders waiting too long
-        for (Order& order : cafe.stats.orders) {
+        // Abandon orders that waited too long
+        for (Order& order : active.orders) {
             if (order.status == OrderStatus::Pending &&
                 current_time - order.customer_arrival_time > params.max_waiting_time) {
                 abandonOrder(cafe, current_time, order);
@@ -430,12 +481,12 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
             }
         }
 
-        // 4. Assign free baristas to oldest pending orders
+        // Assign oldest pending orders while baristas are free
         while (anyBaristaAvailable(cafe, current_time)) {
             int next_pending_index = -1;
 
-            for (int i = cafe.stats.next_in_line_index; i < static_cast<int>(cafe.stats.orders.size()); i++) {
-                if (cafe.stats.orders[i].status == OrderStatus::Pending) {
+            for (int i = active.next_in_line_index; i < static_cast<int>(active.orders.size()); i++) {
+                if (active.orders[i].status == OrderStatus::Pending) {
                     next_pending_index = i;
                     break;
                 }
@@ -445,23 +496,26 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
                 break;
             }
 
-            Barista& chosen = findAvailableBarista(cafe, current_time, rng);
-            assignOrderToBarista(cafe, current_time, cafe.stats.orders[next_pending_index], chosen);
-            displayOrderStarted(cafe.stats.orders[next_pending_index]);
+            Barista& barista = findAvailableBarista(cafe, current_time, rng);
+            assignOrderToBarista(cafe, current_time, active.orders[next_pending_index], barista);
+            displayOrderStarted(active.orders[next_pending_index]);
 
-            cafe.stats.next_in_line_index = next_pending_index + 1;
+            active.next_in_line_index = next_pending_index + 1;
         }
     }
 
     // After closing, only finish orders already in progress
     int current_time = params.closing_time + 1;
     while (hasInProgressOrders(cafe)) {
-        for (Order& order : cafe.stats.orders) {
+        DailyStatistics& active = currentStats(cafe);
+
+        for (Order& order : active.orders) {
             if (order.status == OrderStatus::In_progress && order.end_time == current_time) {
                 completeOrder(cafe, order);
                 displayOrderCompleted(order);
             }
         }
+
         current_time++;
     }
 }
@@ -471,20 +525,22 @@ void displayDailyStats(const Cafe& cafe, const Date& date) {
         throw runtime_error("Negative value not allowed");
     }
 
+    const DailyStatistics& today = findStatsByDate(cafe, date);
+
     cout << "\n=== Daily Summary for "
          << date.month << "/" << date.day << "/" << date.year << " ===\n\n";
 
     cout << fixed << setprecision(2);
-    cout << "Revenue: $" << cafe.stats.revenue << "\n";
-    cout << "Orders completed: " << cafe.stats.count_completed << "\n";
-    cout << "Orders abandoned: " << cafe.stats.count_abandoned << "\n\n";
+    cout << "Revenue: $" << today.revenue << "\n";
+    cout << "Orders completed: " << today.count_completed << "\n";
+    cout << "Orders abandoned: " << today.count_abandoned << "\n\n";
 
     cout << "Barista performance:\n";
     cout << "---------------------------\n";
     cout << left << setw(12) << "Name" << setw(10) << "Orders" << "\n";
     cout << "---------------------------\n";
 
-    for (const Barista& barista : cafe.stats.staff_on_duty) {
+    for (const Barista& barista : today.staff_on_duty) {
         cout << left << setw(12) << barista.name << setw(10) << barista.num_orders_handled << "\n";
     }
 

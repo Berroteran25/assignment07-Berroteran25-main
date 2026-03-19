@@ -86,13 +86,13 @@ struct Cafe {
     std::string name = "missing";
     std::vector<MenuItem> menu;
     std::vector<Barista> staff;
-    DailyStatistics stats;
+    std::vector<DailyStatistics> stats;
 };
 
 struct Parameters {
     int max_waiting_time = 0;
     int closing_time = 0;
-    double show_up_probability = 0.0;
+    double p = 0.0;
     double lambda = 0.0;
 };
 
