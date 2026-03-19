@@ -222,8 +222,8 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
         throw runtime_error("Negative value not allowed");
     }
 
-    cout << "Welcome to " << cafe.name << "!\n";
-    cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << ".\n";
+    cout << "Welcome to " << cafe.name << "! ";
+    cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << ". ";
 
     size_t n = today.staff_on_duty.size();
 
@@ -240,11 +240,7 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
         if (i < n - 2) {
             cout << ", ";
         } else if (i == n - 2) {
-            if (n > 2) {
-                cout << ", and ";
-            } else {
-                cout << " and ";
-            }
+            cout << " and ";
         }
     }
 
