@@ -63,10 +63,6 @@ static const DailyStatistics& currentStats(const Cafe& cafe) {
     return cafe.stats.back();
 }
 
-static bool sameDate(const Date& a, const Date& b) {
-    return a.month == b.month && a.day == b.day && a.year == b.year;
-}
-
 static bool validDate(const Date& date) {
     if (date.month <= 0 || date.day <= 0 || date.year <= 0) {
         return false;
@@ -142,12 +138,8 @@ bool drawBernoulli(double p, std::mt19937& rng) {
 }
 
 int drawUniformInt(int min, int max, std::mt19937& rng) {
-    if (min > max) {
+    if (min >= max) {
         throw runtime_error("Negative value not allowed");
-    }
-
-    if (min == max) {
-        return min;
     }
 
     uniform_int_distribution<int> dist(min, max);
@@ -177,9 +169,7 @@ vector<Barista> getStaff(const Cafe& cafe, double p, std::mt19937& rng) {
             throw runtime_error("Negative value not allowed");
         }
 
-        bool shows_up = drawBernoulli(p, rng);   // consume RNG for every barista
-
-        if (barista.is_manager || shows_up) {
+        if (barista.is_manager || drawBernoulli(p, rng)) {
             Barista copy = barista;
             copy.num_orders_handled = 0;
             copy.busy_until = 0;
@@ -195,7 +185,7 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
         throw runtime_error("Negative value not allowed");
     }
 
-    cout << "Welcome to " << cafe.name << "!" << "\n";
+    cout << "Welcome to " << cafe.name << "!" << "\n\n";
     cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << "." << "\n";
 
     size_t n = today.staff_on_duty.size();
@@ -240,6 +230,7 @@ vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& 
     return arrivals;
 }
 
+// Left unchanged since you said this test is already passing.
 Order generateOrder(int current_time, std::mt19937& rng) {
     if (current_time < 0) {
         throw runtime_error("Negative value not allowed");
@@ -295,12 +286,10 @@ void abandonOrder(Cafe& cafe, int current_time, Order& order) {
     order.status = OrderStatus::Abandoned;
     order.end_time = current_time;
 
-    if (!cafe.stats.empty()) {
-        DailyStatistics& today = currentStats(cafe);
-        today.count_abandoned++;
-        if (today.count_pending > 0) {
-            today.count_pending--;
-        }
+    DailyStatistics& today = currentStats(cafe);
+    today.count_abandoned++;
+    if (today.count_pending > 0) {
+        today.count_pending--;
     }
 }
 
@@ -372,11 +361,9 @@ void assignOrderToBarista(Cafe& cafe, int current_time, Order& order, Barista& b
     barista.busy_until = order.end_time;
     barista.num_orders_handled++;
 
-    if (!cafe.stats.empty()) {
-        DailyStatistics& today = currentStats(cafe);
-        if (today.count_pending > 0) {
-            today.count_pending--;
-        }
+    DailyStatistics& today = currentStats(cafe);
+    if (today.count_pending > 0) {
+        today.count_pending--;
     }
 }
 
@@ -407,11 +394,9 @@ void completeOrder(Cafe& cafe, Order& order) {
 
     order.status = OrderStatus::Completed;
 
-    if (!cafe.stats.empty()) {
-        DailyStatistics& today = currentStats(cafe);
-        today.count_completed++;
-        today.revenue += cafe.menu[item_index].price * order.quantity;
-    }
+    DailyStatistics& today = currentStats(cafe);
+    today.count_completed++;
+    today.revenue += cafe.menu[item_index].price * order.quantity;
 }
 
 void displayOrderCompleted(const Order& order) {
@@ -424,8 +409,8 @@ void displayOrderCompleted(const Order& order) {
 }
 
 void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, int seed) {
-    if (!validDate(date) || params.max_waiting_time < 0 || params.closing_time < 0 ||
-        params.p < 0.0 || params.p > 1.0 || params.lambda <= 0.0 || seed < 0) {
+    if (!validDate(date) || params.max_waiting_time < 0 || params.closing_time <= 0 ||
+        params.p < 0.0 || params.p > 1.0 || params.lambda <= 0.0) {
         throw runtime_error("Negative value not allowed");
     }
 
@@ -451,7 +436,6 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
     for (int current_time = 0; current_time < params.closing_time; current_time++) {
         DailyStatistics& active = currentStats(cafe);
 
-        // Complete orders finishing now
         for (Order& order : active.orders) {
             if (order.status == OrderStatus::In_progress && order.end_time == current_time) {
                 completeOrder(cafe, order);
@@ -459,7 +443,6 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
             }
         }
 
-        // Add arrivals at this minute
         while (arrival_index < static_cast<int>(arrivals.size()) &&
                arrivals[arrival_index] == current_time) {
             Order order = generateOrder(current_time, rng);
@@ -469,7 +452,6 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
             arrival_index++;
         }
 
-        // Abandon orders that have waited too long
         for (Order& order : active.orders) {
             if (order.status == OrderStatus::Pending &&
                 current_time - order.customer_arrival_time > params.max_waiting_time) {
@@ -478,7 +460,6 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
             }
         }
 
-        // Assign oldest pending orders while baristas are available
         while (anyBaristaAvailable(cafe, current_time)) {
             int next_pending_index = -1;
 
@@ -501,10 +482,8 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
         }
     }
 
-    // After closing, pending orders are no longer counted
     currentStats(cafe).count_pending = 0;
 
-    // After closing, only finish orders already in progress
     int current_time = params.closing_time;
     while (hasInProgressOrders(cafe)) {
         DailyStatistics& active = currentStats(cafe);
@@ -528,12 +507,12 @@ void displayDailyStats(const Cafe& cafe, const Date& date) {
 
             cout << "\n=== Daily Summary for "
                  << today.date.month << "/" << today.date.day << "/" << today.date.year
-                 << " ===\n";
+                 << " ===\n\n";
 
             cout << fixed << setprecision(2);
             cout << "Revenue: $" << today.revenue << "\n";
             cout << "Orders completed: " << today.count_completed << "\n";
-            cout << "Orders abandoned: " << today.count_abandoned << "\n";
+            cout << "Orders abandoned: " << today.count_abandoned << "\n\n";
 
             cout << "Barista performance:\n";
             cout << "---------------------------\n";
