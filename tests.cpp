@@ -1267,85 +1267,85 @@
 // */
 // // assignOrderToBarista tests
 
-TEST_CASE("assignOrderToBarista() function", "[5 points]")
-{
-    auto buildCafe = []() -> Cafe {
-        MenuItem espresso   = {5,  3.50};
-        MenuItem doppio     = {6,  5.00};
-        MenuItem latte      = {9,  7.50};
-        MenuItem cappuccino = {8,  8.25};
-        MenuItem americano  = {7,  6.00};
-        MenuItem mocha      = {9, 10.25};
-        MenuItem macchiato  = {7,  8.50};
+// TEST_CASE("assignOrderToBarista() function", "[5 points]")
+// {
+//     auto buildCafe = []() -> Cafe {
+//         MenuItem espresso   = {5,  3.50};
+//         MenuItem doppio     = {6,  5.00};
+//         MenuItem latte      = {9,  7.50};
+//         MenuItem cappuccino = {8,  8.25};
+//         MenuItem americano  = {7,  6.00};
+//         MenuItem mocha      = {9, 10.25};
+//         MenuItem macchiato  = {7,  8.50};
 
-        std::vector<MenuItem> menu = {espresso, doppio, latte,
-                                      cappuccino, americano, mocha,
-                                      macchiato};
-        std::vector<Barista> staff;
-        return Cafe{"TestCafe", menu, staff};
-    };
-    {
-        INFO("Assign a 2-Espresso order to a barista with speed=1.0");
-        Cafe cafe = buildCafe();
+//         std::vector<MenuItem> menu = {espresso, doppio, latte,
+//                                       cappuccino, americano, mocha,
+//                                       macchiato};
+//         std::vector<Barista> staff;
+//         return Cafe{"TestCafe", menu, staff};
+//     };
+//     {
+//         INFO("Assign a 2-Espresso order to a barista with speed=1.0");
+//         Cafe cafe = buildCafe();
 
-        Order order;
-        order.menu_item_name = MenuItemNames::Espresso; 
-        order.quantity       = 2;                     
-        order.id             = 1;                     
+//         Order order;
+//         order.menu_item_name = MenuItemNames::Espresso; 
+//         order.quantity       = 2;                     
+//         order.id             = 1;                     
 
-        Barista barista;
-        barista.name          = "Alan";
-        barista.speed_factor  = 1.0;   
-        barista.num_orders_handled = 0;
-        barista.busy_until   = 0;
+//         Barista barista;
+//         barista.name          = "Alan";
+//         barista.speed_factor  = 1.0;   
+//         barista.num_orders_handled = 0;
+//         barista.busy_until   = 0;
 
-        int current_time = 10;        
+//         int current_time = 10;        
 
-        assignOrderToBarista(cafe, current_time, order, barista);   
+//         assignOrderToBarista(cafe, current_time, order, barista);   
 
-        CHECK(order.status == OrderStatus::In_progress);
-        CHECK(order.start_time == current_time);
-        CHECK(order.barista_name == "Alan");
-        int expected_end = current_time + 10;
-        CHECK(order.end_time == expected_end);
-        CHECK(barista.num_orders_handled == 1);
-        CHECK(barista.busy_until == expected_end);
-    }
-    {
-        INFO("Zero quantity order must trigger a runtime_error");
-        Cafe cafe = buildCafe();
+//         CHECK(order.status == OrderStatus::In_progress);
+//         CHECK(order.start_time == current_time);
+//         CHECK(order.barista_name == "Alan");
+//         int expected_end = current_time + 10;
+//         CHECK(order.end_time == expected_end);
+//         CHECK(barista.num_orders_handled == 1);
+//         CHECK(barista.busy_until == expected_end);
+//     }
+//     {
+//         INFO("Zero quantity order must trigger a runtime_error");
+//         Cafe cafe = buildCafe();
 
-        Order order;
-        order.menu_item_name = MenuItemNames::Mocha;
-        order.quantity       = 0;      // illegal
-        order.id             = 3;
+//         Order order;
+//         order.menu_item_name = MenuItemNames::Mocha;
+//         order.quantity       = 0;      // illegal
+//         order.id             = 3;
 
-        Barista barista;
-        barista.name          = "Carlos";
-        barista.speed_factor  = 1.5;
+//         Barista barista;
+//         barista.name          = "Carlos";
+//         barista.speed_factor  = 1.5;
 
-        int current_time = 12;
+//         int current_time = 12;
 
-        CHECK_THROWS_AS(assignOrderToBarista(cafe, current_time, order, barista), std::runtime_error);
-    }
-    {
-        INFO("Barista with non positive speed_factor must trigger a runtime_error");
-        Cafe cafe = buildCafe();
+//         CHECK_THROWS_AS(assignOrderToBarista(cafe, current_time, order, barista), std::runtime_error);
+//     }
+//     {
+//         INFO("Barista with non positive speed_factor must trigger a runtime_error");
+//         Cafe cafe = buildCafe();
 
-        Order order;
-        order.menu_item_name = MenuItemNames::Cappuccino;
-        order.quantity       = 1;
-        order.id             = 4;
+//         Order order;
+//         order.menu_item_name = MenuItemNames::Cappuccino;
+//         order.quantity       = 1;
+//         order.id             = 4;
 
-        Barista barista;
-        barista.name          = "Daisy";
-        barista.speed_factor  = 0.0;   // illegal
+//         Barista barista;
+//         barista.name          = "Daisy";
+//         barista.speed_factor  = 0.0;   // illegal
 
-        int current_time = 22;
+//         int current_time = 22;
 
-        CHECK_THROWS_AS(assignOrderToBarista(cafe, current_time, order, barista), std::runtime_error);
-    }
-}
+//         CHECK_THROWS_AS(assignOrderToBarista(cafe, current_time, order, barista), std::runtime_error);
+//     }
+// }
 
 // // // displayOrderStarted tests
 // /*
@@ -1388,225 +1388,226 @@ TEST_CASE("assignOrderToBarista() function", "[5 points]")
 //     }
 // }
 // */
-//  // // simulateDailyOperation tests
-// /*
-// TEST_CASE("simulateDailyOperation() function", "[10 points]"){
-//     // Helper to capture std::cout output
-//     auto captureOutput = [](auto&& func) {
-//         std::ostringstream oss;
-//         std::streambuf* old_buf = std::cout.rdbuf(oss.rdbuf());  // redirect
-//         func();                                                                             // call the function under test
-//         std::cout.rdbuf(old_buf);                                                 // restore
-//         return oss.str();   
-//     };
-//     auto buildCafe = []() -> Cafe {
-//         MenuItem espresso = {2, 3.50};
-//         MenuItem doppio = {2, 5.0};
-//         MenuItem latte = {3, 7.50};
-//         MenuItem cappuccino = {3, 8.25};
-//         MenuItem americano = {2, 6.00};
-//         MenuItem mocha = {4, 10.25};
-//         MenuItem macchiato = {3, 8.50};
-//         std::vector<MenuItem> menu = {espresso, doppio, latte, cappuccino, americano, mocha, macchiato};
+ // // simulateDailyOperation tests
 
-//         Barista alan   = {"Alan",   false, 1.0, 0, 0};
-//         Barista bella  = {"Bella",  false, 1.2, 0, 0};
-//         Barista carlos = {"Carlos", false, 1.7, 0, 0};
-//         Barista daisy  = {"Daisy",  false, 1.5, 0, 0};
-//         Barista emma   = {"Emma",   true,  2.0, 0, 0};
-//         std::vector<Barista> staff = {alan, bella, carlos, daisy, emma};
+TEST_CASE("simulateDailyOperation() function", "[10 points]")
+{
+    // Helper to capture std::cout output
+    auto captureOutput = [](auto&& func) {
+        std::ostringstream oss;
+        std::streambuf* old_buf = std::cout.rdbuf(oss.rdbuf());  // redirect
+        func();                                                                             // call the function under test
+        std::cout.rdbuf(old_buf);                                                 // restore
+        return oss.str();   
+    };
+    auto buildCafe = []() -> Cafe {
+        MenuItem espresso = {2, 3.50};
+        MenuItem doppio = {2, 5.0};
+        MenuItem latte = {3, 7.50};
+        MenuItem cappuccino = {3, 8.25};
+        MenuItem americano = {2, 6.00};
+        MenuItem mocha = {4, 10.25};
+        MenuItem macchiato = {3, 8.50};
+        std::vector<MenuItem> menu = {espresso, doppio, latte, cappuccino, americano, mocha, macchiato};
 
-//     return Cafe{"Morning Grind", menu, staff};
-//     };
-//     {
-//         INFO("Low lambda = 0.001, seed = 0 -> no orders enter the system");
-//         Cafe cafe = buildCafe();
+        Barista alan   = {"Alan",   false, 1.0, 0, 0};
+        Barista bella  = {"Bella",  false, 1.2, 0, 0};
+        Barista carlos = {"Carlos", false, 1.7, 0, 0};
+        Barista daisy  = {"Daisy",  false, 1.5, 0, 0};
+        Barista emma   = {"Emma",   true,  2.0, 0, 0};
+        std::vector<Barista> staff = {alan, bella, carlos, daisy, emma};
 
-//         Date date = {3, 10, 2026};
-//         Parameters params;
-//         params.max_waiting_time = 10;   
-//         params.closing_time      = 600;
-//         params.p                 = 0.5; 
-//         params.lambda            = 0.001; // extremely low arrival rate
+    return Cafe{"Morning Grind", menu, staff, {}};
+    };
+    {
+        INFO("Low lambda = 0.001, seed = 0 -> no orders enter the system");
+        Cafe cafe = buildCafe();
 
-//         std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 0); });
-//         CHECK(cafe.stats.size() == 1);
-//         const DailyStatistics& today = cafe.stats.back();
+        Date date = {3, 10, 2026};
+        Parameters params;
+        params.max_waiting_time = 10;   
+        params.closing_time      = 600;
+        params.p                 = 0.5; 
+        params.lambda            = 0.001; // extremely low arrival rate
 
-//         CHECK(today.orders.empty());               // no orders were created
-//         CHECK(today.next_in_line_index == 0);
-//         CHECK(today.count_completed == 0);
-//         CHECK(today.count_abandoned == 0);
-//         CHECK(today.count_pending == 0);
-//         CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(0, 0.01));
-//     }
-//     {
-//         INFO("High lambda; seed = 0, too many orders, high abandonment");
-//         Cafe cafe = buildCafe();
+        std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 0); });
+        CHECK(cafe.stats.size() == 1);
+        const DailyStatistics& today = cafe.stats.back();
 
-//         Date date = {3, 10, 2026};
-//         Parameters params;
-//         params.max_waiting_time = 10;   
-//         params.closing_time      = 600; 
-//         params.p                 = 0.5;
-//         params.lambda            = 2.0;  // high arrival rate
+        CHECK(today.orders.empty());               // no orders were created
+        CHECK(today.next_in_line_index == 0);
+        CHECK(today.count_completed == 0);
+        CHECK(today.count_abandoned == 0);
+        CHECK(today.count_pending == 0);
+        CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(0, 0.01));
+    }
+    {
+        INFO("High lambda; seed = 0, too many orders, high abandonment");
+        Cafe cafe = buildCafe();
 
-//         std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 0); });
+        Date date = {3, 10, 2026};
+        Parameters params;
+        params.max_waiting_time = 10;   
+        params.closing_time      = 600; 
+        params.p                 = 0.5;
+        params.lambda            = 2.0;  // high arrival rate
 
-//         CHECK(cafe.stats.size() == 1);
-//         const DailyStatistics& today = cafe.stats.back();
+        std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 0); });
 
-//         CHECK(today.orders.size() == 3848);
-//         CHECK(today.next_in_line_index == 3775);
-//         CHECK(today.count_completed == 219);
-//         CHECK(today.count_abandoned == 3556);
-//         CHECK(today.count_pending == 0);
-//         CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(2901.5, 0.01));
-//     }
-//     {
-//         INFO("Moderate lambda; standard closing time, seed = 0");
-//         Cafe cafe = buildCafe();
+        CHECK(cafe.stats.size() == 1);
+        const DailyStatistics& today = cafe.stats.back();
 
-//         Date date = {3, 10, 2026};
-//         Parameters params;
-//         params.max_waiting_time = 10;   
-//         params.closing_time      = 600; 
-//         params.p                 = 0.5;
-//         params.lambda            = 0.2;
+        CHECK(today.orders.size() == 3848);
+        CHECK(today.next_in_line_index == 3775);
+        CHECK(today.count_completed == 219);
+        CHECK(today.count_abandoned == 3556);
+        CHECK(today.count_pending == 0);
+        CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(2901.5, 0.01));
+    }
+    {
+        INFO("Moderate lambda; standard closing time, seed = 0");
+        Cafe cafe = buildCafe();
 
-//         std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 0); });
+        Date date = {3, 10, 2026};
+        Parameters params;
+        params.max_waiting_time = 10;   
+        params.closing_time      = 600; 
+        params.p                 = 0.5;
+        params.lambda            = 0.2;
 
-//         CHECK(cafe.stats.size() == 1);
-//         const DailyStatistics& today = cafe.stats.back();
+        std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 0); });
 
-//         CHECK(today.orders.size() == 146);
-//         CHECK(today.next_in_line_index == 145);
-//         CHECK(today.count_completed == 141);
-//         CHECK(today.count_abandoned == 4);
-//         CHECK(today.count_pending == 0);
-//         CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(1875.75, 0.01));
-//     }
-//     {
-//         INFO("Moderate lambda; standard closing time, seed = 5");
-//         Cafe cafe = buildCafe();
+        CHECK(cafe.stats.size() == 1);
+        const DailyStatistics& today = cafe.stats.back();
 
-//         Date date = {3, 10, 2026};
-//         Parameters params;
-//         params.max_waiting_time = 10;   
-//         params.closing_time      = 600; 
-//         params.p                 = 0.5;
-//         params.lambda            = 0.2;
+        CHECK(today.orders.size() == 146);
+        CHECK(today.next_in_line_index == 145);
+        CHECK(today.count_completed == 141);
+        CHECK(today.count_abandoned == 4);
+        CHECK(today.count_pending == 0);
+        CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(1875.75, 0.01));
+    }
+    {
+        INFO("Moderate lambda; standard closing time, seed = 5");
+        Cafe cafe = buildCafe();
 
-//         std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 5); });
+        Date date = {3, 10, 2026};
+        Parameters params;
+        params.max_waiting_time = 10;   
+        params.closing_time      = 600; 
+        params.p                 = 0.5;
+        params.lambda            = 0.2;
 
-//         CHECK(cafe.stats.size() == 1);
-//         const DailyStatistics& today = cafe.stats.back();
+        std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 5); });
 
-//         CHECK(today.orders.size() == 145);
-//         CHECK(today.next_in_line_index == 145);
-//         CHECK(today.count_completed == 145);
-//         CHECK(today.count_abandoned == 0);
-//         CHECK(today.count_pending == 0);
-//         CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(2209.5, 0.01));
-//     }
-//     {
-//         INFO("Closing time = 2, but preparation takes longer; the order must finish after the loop");
-//         Cafe cafe = buildCafe();
+        CHECK(cafe.stats.size() == 1);
+        const DailyStatistics& today = cafe.stats.back();
 
-//         Date date = {3, 10, 2026};
-//         Parameters params;
-//         params.max_waiting_time = 10;
-//         params.closing_time      = 2;      // very short day
-//         params.p                 = 0.5;
-//         params.lambda            = 2.0;   // guarantees an arrival at t = 0
+        CHECK(today.orders.size() == 145);
+        CHECK(today.next_in_line_index == 145);
+        CHECK(today.count_completed == 145);
+        CHECK(today.count_abandoned == 0);
+        CHECK(today.count_pending == 0);
+        CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(2209.5, 0.01));
+    }
+    {
+        INFO("Closing time = 2, but preparation takes longer; the order must finish after the loop");
+        Cafe cafe = buildCafe();
 
-//         std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 0); });
+        Date date = {3, 10, 2026};
+        Parameters params;
+        params.max_waiting_time = 10;
+        params.closing_time      = 2;      // very short day
+        params.p                 = 0.5;
+        params.lambda            = 2.0;   // guarantees an arrival at t = 0
 
-//         REQUIRE(cafe.stats.size() == 1);
-//         const DailyStatistics& today = cafe.stats.back();
+        std::string out = captureOutput([&](){ simulateDailyOperation(cafe, date, params, 0); });
 
-//         const Order& order = today.orders.front();
-//         CHECK(order.status == OrderStatus::Completed);
-//         CHECK(order.end_time > params.closing_time);   // finished after closing
-//         CHECK(today.count_completed == 1);
-//         // No abandonment and revenue equal to price × quantity
-//         CHECK(today.count_abandoned == 0);
-//         double expectedRev = order.quantity * cafe.menu[static_cast<int>(order.menu_item_name)].price;
-//         CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(expectedRev, 0.01));
-//     }
+        REQUIRE(cafe.stats.size() == 1);
+        const DailyStatistics& today = cafe.stats.back();
 
-// }
+        const Order& order = today.orders.front();
+        CHECK(order.status == OrderStatus::Completed);
+        CHECK(order.end_time > params.closing_time);   // finished after closing
+        CHECK(today.count_completed == 1);
+        // No abandonment and revenue equal to price × quantity
+        CHECK(today.count_abandoned == 0);
+        double expectedRev = order.quantity * cafe.menu[static_cast<int>(order.menu_item_name)].price;
+        CHECK_THAT(today.revenue, Catch::Matchers::WithinAbs(expectedRev, 0.01));
+    }
 
-// TEST_CASE("simulateDailyOperation() creates a separate stats record for each day", "[5 points]")
-// {
-//     // Helper to capture std::cout output
-//     auto captureOutput = [](auto&& func) {
-//         std::ostringstream oss;
-//         std::streambuf* old_buf = std::cout.rdbuf(oss.rdbuf());  // redirect
-//         func();                                                                             // call the function under test
-//         std::cout.rdbuf(old_buf);                                                 // restore
-//         return oss.str();   
-//     };
-//     auto buildCafe = []() -> Cafe {
-//         MenuItem espresso = {2, 3.50};
-//         MenuItem doppio = {2, 5.0};
-//         MenuItem latte = {3, 7.50};
-//         MenuItem cappuccino = {3, 8.25};
-//         MenuItem americano = {2, 6.00};
-//         MenuItem mocha = {4, 10.25};
-//         MenuItem macchiato = {3, 8.50};
-//         std::vector<MenuItem> menu = {espresso, doppio, latte, cappuccino, americano, mocha, macchiato};
+}
 
-//         Barista alan   = {"Alan",   false, 1.0, 0, 0};
-//         Barista bella  = {"Bella",  false, 1.2, 0, 0};
-//         Barista carlos = {"Carlos", false, 1.7, 0, 0};
-//         Barista daisy  = {"Daisy",  false, 1.5, 0, 0};
-//         Barista emma   = {"Emma",   true,  2.0, 0, 0};
-//         std::vector<Barista> staff = {alan, bella, carlos, daisy, emma};
+TEST_CASE("simulateDailyOperation() creates a separate stats record for each day", "[5 points]")
+{
+    // Helper to capture std::cout output
+    auto captureOutput = [](auto&& func) {
+        std::ostringstream oss;
+        std::streambuf* old_buf = std::cout.rdbuf(oss.rdbuf());  // redirect
+        func();                                                                             // call the function under test
+        std::cout.rdbuf(old_buf);                                                 // restore
+        return oss.str();   
+    };
+    auto buildCafe = []() -> Cafe {
+        MenuItem espresso = {2, 3.50};
+        MenuItem doppio = {2, 5.0};
+        MenuItem latte = {3, 7.50};
+        MenuItem cappuccino = {3, 8.25};
+        MenuItem americano = {2, 6.00};
+        MenuItem mocha = {4, 10.25};
+        MenuItem macchiato = {3, 8.50};
+        std::vector<MenuItem> menu = {espresso, doppio, latte, cappuccino, americano, mocha, macchiato};
 
-//     return Cafe{"Morning Grind", menu, staff};
-//     };
-//     Cafe cafe = buildCafe();
+        Barista alan   = {"Alan",   false, 1.0, 0, 0};
+        Barista bella  = {"Bella",  false, 1.2, 0, 0};
+        Barista carlos = {"Carlos", false, 1.7, 0, 0};
+        Barista daisy  = {"Daisy",  false, 1.5, 0, 0};
+        Barista emma   = {"Emma",   true,  2.0, 0, 0};
+        std::vector<Barista> staff = {alan, bella, carlos, daisy, emma};
 
-//     Parameters params;
-//     params.max_waiting_time = 10;
-//     params.closing_time      = 60;
-//     params.p                 = 0.5;
-//     params.lambda            = 0.2;
+    return Cafe{"Morning Grind", menu, staff, {}};
+    };
+    Cafe cafe = buildCafe();
 
-//     // Day 1
-//     Date day1 = {3, 10, 2026};
-//     int seed_day1 = 1;      
-//     std::string out_day1 = captureOutput([&](){ simulateDailyOperation(cafe, day1, params, seed_day1); });               
+    Parameters params;
+    params.max_waiting_time = 10;
+    params.closing_time      = 60;
+    params.p                 = 0.5;
+    params.lambda            = 0.2;
 
-//     // Day 2 – a different calendar date
-//     Date day2 = {3, 11, 2026};
-//     int seed_day2 = 2;                     // a different seed to vary the RNG sequence
-//     std::string out_day2 = captureOutput([&](){ simulateDailyOperation(cafe, day2, params, seed_day2); });      
+    // Day 1
+    Date day1 = {3, 10, 2026};
+    int seed_day1 = 1;      
+    std::string out_day1 = captureOutput([&](){ simulateDailyOperation(cafe, day1, params, seed_day1); });               
+
+    // Day 2 – a different calendar date
+    Date day2 = {3, 11, 2026};
+    int seed_day2 = 2;                     // a different seed to vary the RNG sequence
+    std::string out_day2 = captureOutput([&](){ simulateDailyOperation(cafe, day2, params, seed_day2); });      
 
 
-//     REQUIRE(cafe.stats.size() == 2);      // exactly two days recorded
+    REQUIRE(cafe.stats.size() == 2);      // exactly two days recorded
 
-//     const DailyStatistics& stats_day1 = cafe.stats[0];
-//     const DailyStatistics& stats_day2 = cafe.stats[1];
+    const DailyStatistics& stats_day1 = cafe.stats[0];
+    const DailyStatistics& stats_day2 = cafe.stats[1];
 
-//     // Dates must match the ones we passed in
-//     CHECK(stats_day1.date.month == day1.month);
-//     CHECK(stats_day1.date.day   == day1.day);
-//     CHECK(stats_day1.date.year  == day1.year);
+    // Dates must match the ones we passed in
+    CHECK(stats_day1.date.month == day1.month);
+    CHECK(stats_day1.date.day   == day1.day);
+    CHECK(stats_day1.date.year  == day1.year);
 
-//     CHECK(stats_day2.date.month == day2.month);
-//     CHECK(stats_day2.date.day   == day2.day);
-//     CHECK(stats_day2.date.year  == day2.year);
+    CHECK(stats_day2.date.month == day2.month);
+    CHECK(stats_day2.date.day   == day2.day);
+    CHECK(stats_day2.date.year  == day2.year);
 
-//     CHECK(!stats_day1.orders.empty());
-//     CHECK(!stats_day2.orders.empty());
+    CHECK(!stats_day1.orders.empty());
+    CHECK(!stats_day2.orders.empty());
 
-//     CHECK(&stats_day1 != &stats_day2);
-//     CHECK((stats_day1.count_completed != stats_day2.count_completed ||
-//           stats_day1.count_abandoned != stats_day2.count_abandoned));
-// }
-// */
+    CHECK(&stats_day1 != &stats_day2);
+    CHECK((stats_day1.count_completed != stats_day2.count_completed ||
+          stats_day1.count_abandoned != stats_day2.count_abandoned));
+}
+
 // // // displayDailyStats tests
 // /*
 // TEST_CASE("displayDailyStats() function", "[5 points]")
