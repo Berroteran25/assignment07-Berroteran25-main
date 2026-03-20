@@ -191,55 +191,35 @@ vector<Barista> getStaff(const Cafe& cafe, double p, std::mt19937& rng) {
 }
 
 void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
-    if (cafe.name == "missing" || !validDate(today.date) || today.staff_on_duty.empty()) {
+    if (cafe.name == "missing" || !validDate(today.date)) {
         throw runtime_error("Negative value not allowed");
     }
 
-    cout << "Welcome to " << cafe.name << "!" << "\n";
-    cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << "." << "\n";
+    const vector<Barista>* staff_list = nullptr;
 
-    size_t n = today.staff_on_duty.size();
-
-    if (n == 1) {
-        cout << "Your barista today is " << today.staff_on_duty[0].name << "." << "\n";
-        return;
+    if (!today.staff_on_duty.empty()) {
+        staff_list = &today.staff_on_duty;
+    } else if (!cafe.staff.empty()) {
+        staff_list = &cafe.staff;
+    } else {
+        throw runtime_error("Negative value not allowed");
     }
 
+    cout << "Welcome to " << cafe.name << "!" << "\n\n";
+    cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << "." << "\n";
     cout << "Your baristas today are ";
-    for (size_t i = 0; i < n; i++) {
-        cout << today.staff_on_duty[i].name;
-        if (i < n - 2) {
+
+    for (size_t i = 0; i < staff_list->size(); i++) {
+        cout << (*staff_list)[i].name;
+        if (i < staff_list->size() - 2) {
             cout << ", ";
-        } else if (i == n - 2) {
+        } else if (i == staff_list->size() - 2) {
             cout << " and ";
         }
     }
+
     cout << "." << "\n";
 }
-
-vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& rng) {
-    if (lambda <= 0.0 || closing_time <= 0) {
-        throw runtime_error("Negative value not allowed");
-    }
-
-    vector<int> arrivals;
-    int current_time = 0;
-
-    while (true) {
-        double u = drawUniformReal(rng);
-        int inter_arrival_time = static_cast<int>(floor(-log(u) / lambda));
-        current_time += inter_arrival_time;
-
-        if (current_time >= closing_time) {
-            break;
-        }
-
-        arrivals.push_back(current_time);
-    }
-
-    return arrivals;
-}
-
 Order generateOrder(int current_time, std::mt19937& rng) {
     if (current_time < 0) {
         throw runtime_error("Negative value not allowed");
