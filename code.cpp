@@ -106,9 +106,12 @@ static string formatTime(int minutes_after_open) {
         suffix = "a.m.";
     } else if (hour24 == 12) {
         suffix = "p.m.";
-    } else {
+    }else if (hour24 < 24) {
         hour12 = hour24 - 12;
         suffix = "p.m.";
+    } else {
+        hour12 = 12;
+        suffix = "a.m.";
     }
 
     ostringstream out;
@@ -398,9 +401,6 @@ void completeOrder(Cafe& cafe, Order& order) {
     }
 
     int item_index = static_cast<int>(order.menu_item_name);
-    //if (item_index < 0 || item_index >= static_cast<int>(cafe.menu.size())) {
-    //    throw runtime_error("Negative value not allowed");
-    //}
 
     if (order.status == OrderStatus::Completed || order.status == OrderStatus::Abandoned) {
         throw runtime_error("Negative value not allowed");
