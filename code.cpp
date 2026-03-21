@@ -229,7 +229,7 @@ vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& 
     vector<int> arrivals;
     int current_time = 0;
 
-    while (true) {
+    while (lambda > 0.001) {
         double u = drawUniformReal(rng);
         int inter_arrival_time = static_cast<int>(floor(-log(u) / lambda));
         current_time += inter_arrival_time;
@@ -237,9 +237,7 @@ vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& 
         if (current_time >= closing_time) {
             break;
         }
-        if (current_time > 0){
         arrivals.push_back(current_time);
-        }
     }
 
     return arrivals;
