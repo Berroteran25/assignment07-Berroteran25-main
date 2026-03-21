@@ -196,13 +196,13 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
         throw runtime_error("Negative value not allowed");
     }
 
-    cout << "Welcome to " << cafe.name << "!" << "\n";
+    cout << "Welcome to " << cafe.name << "!" << "\n\n";
     cout << "Today is " << today.date.month << "/" << today.date.day << "/" << today.date.year << "." << "\n";
 
     size_t n = today.staff_on_duty.size();
 
     if (n == 1) {
-        cout << "Your barista today is " << today.staff_on_duty[0].name << "." << "\n";
+        cout << "Your barista today is " << today.staff_on_duty[0].name << "." << "\n\n";
         return;
     }
 
@@ -215,7 +215,7 @@ void displayOpeningNote(const Cafe& cafe, const DailyStatistics& today) {
             cout << " and ";
         }
     }
-    cout << "." << "\n";
+    cout << "." << "\n\n";
 }
 
 vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& rng) {
@@ -424,17 +424,6 @@ void displayOrderCompleted(const Order& order) {
          << formatTime(order.end_time) << "\n";
 }
 
-static void updateNextInLineIndex(DailyStatistics& today) {
-    today.next_in_line_index = static_cast<int>(today.orders.size());
-
-    for (int i = 0; i < static_cast<int>(today.orders.size()); i++) {
-        if (today.orders[i].status == OrderStatus::Pending) {
-            today.next_in_line_index = i;
-            return;
-        }
-    }
-}
-
 void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, int seed) {
     if (!validDate(date) || params.max_waiting_time < 0 || params.closing_time <= 0 ||
         params.p < 0.0 || params.p > 1.0 || params.lambda <= 0.0) {
@@ -452,7 +441,6 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
 
     mt19937 rng = initializeRng(seed);
     today.staff_on_duty = getStaff(cafe, params.p, rng);
-
     cafe.stats.push_back(today);
 
     displayOpeningNote(cafe, currentStats(cafe));
@@ -480,38 +468,45 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
             displayCustomerArrival(active.orders.back());
             arrival_index++;
         }
-        updateNextInLineIndex(active);
 
         // Abandon orders that have waited too long
-        for (Order& order : active.orders) {
-            if (order.status == OrderStatus::Pending &&
-                current_time - order.customer_arrival_time > params.max_waiting_time) {
-                abandonOrder(cafe, current_time, order);
-                displayOrderAbandoned(order);
+        for (int i = active.next_in_line_index; i < static_cast<int>(active.orders.size()); i++) {
+            if (active.orders[i].status == OrderStatus::Pending &&
+                current_time - active.orders[i].customer_arrival_time > params.max_waiting_time) {
+                abandonOrder(cafe, current_time, active.orders[i]);
+                displayOrderAbandoned(active.orders[i]);
             }
         }
-        updateNextInLineIndex(active);
+
+        // Move queue pointer forward past any non-pending orders
+        while (active.next_in_line_index < static_cast<int>(active.orders.size()) &&
+               active.orders[active.next_in_line_index].status != OrderStatus::Pending) {
+            active.next_in_line_index++;
+        }
 
         // Assign oldest pending orders while baristas are available
         while (anyBaristaAvailable(cafe, current_time)) {
-            updateNextInLineIndex(active);
+            while (active.next_in_line_index < static_cast<int>(active.orders.size()) &&
+                   active.orders[active.next_in_line_index].status != OrderStatus::Pending) {
+                active.next_in_line_index++;
+            }
 
-            int next_pending_index = active.next_in_line_index;
-
-            if (next_pending_index >= static_cast<int>(active.orders.size()) ||
-                active.orders[next_pending_index].status != OrderStatus::Pending) {
+            if (active.next_in_line_index >= static_cast<int>(active.orders.size())) {
                 break;
             }
 
             Barista& barista = findAvailableBarista(cafe, current_time, rng);
-            assignOrderToBarista(cafe, current_time, active.orders[next_pending_index], barista);
-            displayOrderStarted(active.orders[next_pending_index]);
+            assignOrderToBarista(cafe, current_time, active.orders[active.next_in_line_index], barista);
+            displayOrderStarted(active.orders[active.next_in_line_index]);
 
-            updateNextInLineIndex(active);
+            active.next_in_line_index++;
+
+            while (active.next_in_line_index < static_cast<int>(active.orders.size()) &&
+                   active.orders[active.next_in_line_index].status != OrderStatus::Pending) {
+                active.next_in_line_index++;
+            }
         }
     }
-
-    updateNextInLineIndex(currentStats(cafe));
 
     // After closing, only finish orders already in progress
     int current_time = params.closing_time;
@@ -528,7 +523,12 @@ void simulateDailyOperation(Cafe& cafe, Date& date, const Parameters& params, in
         current_time++;
     }
 
-    updateNextInLineIndex(currentStats(cafe));
+    // Final queue position: first not-yet-assigned pending order, or orders.size()
+    DailyStatistics& active = currentStats(cafe);
+    while (active.next_in_line_index < static_cast<int>(active.orders.size()) &&
+           active.orders[active.next_in_line_index].status != OrderStatus::Pending) {
+        active.next_in_line_index++;
+    }
 }
 
 void displayDailyStats(const Cafe& cafe, const Date& date) {

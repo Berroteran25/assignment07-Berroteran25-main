@@ -502,166 +502,166 @@
 // }
 // */
 // // // displayOpeningNote tests
-// /*
-// TEST_CASE("displayOpeningNote() function", "[4 points]") {
-//     // Helper to capture std::cout output
-//     auto captureOutput = [](auto&& func) {
-//         std::ostringstream oss;
-//         std::streambuf* old_buf = std::cout.rdbuf(oss.rdbuf());  // redirect
-//         func();                                                                             // call the function under test
-//         std::cout.rdbuf(old_buf);                                                 // restore
-//         return oss.str();   
-//     };
-//     auto buildCafe = []() -> Cafe {
-//         std::vector<MenuItem> menu;
 
-//         Barista alan   = {"Alan",   false, 1.0, 0, 0};
-//         Barista bella  = {"Bella",  false, 1.2, 0, 0};
-//         Barista carlos = {"Carlos", false, 1.7, 0, 0};
-//         Barista daisy  = {"Daisy",  false, 1.5, 0, 0};
-//         Barista emma   = {"Emma",   true,  2.0, 0, 0};
-//         std::vector<Barista> staff = {alan, bella, carlos, daisy, emma};
+TEST_CASE("displayOpeningNote() function", "[4 points]") {
+    // Helper to capture std::cout output
+    auto captureOutput = [](auto&& func) {
+        std::ostringstream oss;
+        std::streambuf* old_buf = std::cout.rdbuf(oss.rdbuf());  // redirect
+        func();                                                                             // call the function under test
+        std::cout.rdbuf(old_buf);                                                 // restore
+        return oss.str();   
+    };
+    auto buildCafe = []() -> Cafe {
+        std::vector<MenuItem> menu;
 
-//     return Cafe{"Morning Grind", menu, staff};
-//     };
-//     {
-//         INFO("Only Emma is on duty; the output should say \"Your barista today is …\"");
-//         Cafe cafe = buildCafe();
+        Barista alan   = {"Alan",   false, 1.0, 0, 0};
+        Barista bella  = {"Bella",  false, 1.2, 0, 0};
+        Barista carlos = {"Carlos", false, 1.7, 0, 0};
+        Barista daisy  = {"Daisy",  false, 1.5, 0, 0};
+        Barista emma   = {"Emma",   true,  2.0, 0, 0};
+        std::vector<Barista> staff = {alan, bella, carlos, daisy, emma};
 
-//         // Build a DailyStatistics that contains **only** Emma
-//         Date todayDate = {3, 10, 2026};
-//         std::vector<Barista> onlyEmma = { cafe.staff.back() };   // Emma is the last element
-//         DailyStatistics stats{ todayDate, onlyEmma };
+    return Cafe{"Morning Grind", menu, staff};
+    };
+    {
+        INFO("Only Emma is on duty; the output should say \"Your barista today is …\"");
+        Cafe cafe = buildCafe();
 
-//         std::string out = captureOutput([&](){ displayOpeningNote(cafe, stats); });
+        // Build a DailyStatistics that contains **only** Emma
+        Date todayDate = {3, 10, 2026};
+        std::vector<Barista> onlyEmma = { cafe.staff.back() };   // Emma is the last element
+        DailyStatistics stats{ todayDate, onlyEmma };
 
-//         // Expected exact lines (including the blank line after the greeting)
-//         const std::string expectedHeader =
-//             "Welcome to Morning Grind!\n\n"
-//             "Today is 3/10/2026.\n";
+        std::string out = captureOutput([&](){ displayOpeningNote(cafe, stats); });
 
-//         const std::string expectedBaristaLine = "Your barista today is Emma.\n\n";
+        // Expected exact lines (including the blank line after the greeting)
+        const std::string expectedHeader =
+            "Welcome to Morning Grind!\n\n"
+            "Today is 3/10/2026.\n";
 
-//         CHECK(out.find(expectedHeader) != std::string::npos);
-//         CHECK(out.find(expectedBaristaLine) != std::string::npos);
-//     }
-//     {
-//         INFO("All five staff members are on duty; the output should list them with commas and \"and\"");
-//         Cafe cafe = buildCafe();
+        const std::string expectedBaristaLine = "Your barista today is Emma.\n\n";
 
-//         // Use the full staff vector that was created in buildStandardCafe()
-//         Date todayDate = {3, 10, 2026};
-//         DailyStatistics stats{ todayDate, cafe.staff };
+        CHECK(out.find(expectedHeader) != std::string::npos);
+        CHECK(out.find(expectedBaristaLine) != std::string::npos);
+    }
+    {
+        INFO("All five staff members are on duty; the output should list them with commas and \"and\"");
+        Cafe cafe = buildCafe();
 
-//         std::string out = captureOutput([&](){ displayOpeningNote(cafe, stats); });
+        // Use the full staff vector that was created in buildStandardCafe()
+        Date todayDate = {3, 10, 2026};
+        DailyStatistics stats{ todayDate, cafe.staff };
 
-//         // Header part (identical to the previous test)
-//         const std::string expectedHeader =
-//             "Welcome to Morning Grind!\n\n"
-//             "Today is 3/10/2026.\n";
+        std::string out = captureOutput([&](){ displayOpeningNote(cafe, stats); });
 
-//         // The barista list should be: Alan, Bella, Carlos, Daisy and Emma.
-//         const std::string expectedBaristaLine = "Your baristas today are Alan, Bella, Carlos, Daisy and Emma.\n\n";
+        // Header part (identical to the previous test)
+        const std::string expectedHeader =
+            "Welcome to Morning Grind!\n\n"
+            "Today is 3/10/2026.\n";
 
-//         CHECK(out.find(expectedHeader) != std::string::npos);
-//         CHECK(out.find(expectedBaristaLine) != std::string::npos);
-//     }
-// }
-// */
-// // // generateArrivalTimes tests
-// /*
-// TEST_CASE("generateArrivalTimes() function", "[5 points]")
-// {
-//     {
-//     INFO("generateArrivalTimes() function with invalid range.");
-//         std::mt19937 rng = initializeRng(0);
-//         double lambda = 0;
-//         int    closing_time = 5;
-//         CHECK_THROWS_AS(generateArrivalTimes(lambda, closing_time, rng), std::runtime_error);
-//         lambda = -0.5;
-//         CHECK_THROWS_AS(generateArrivalTimes(lambda, closing_time, rng), std::runtime_error);
-//         lambda = 0.5;
-//         closing_time = 0;
-//         CHECK_THROWS_AS(generateArrivalTimes(lambda, closing_time, rng), std::runtime_error);
-//         closing_time = -10;
-//         CHECK_THROWS_AS(generateArrivalTimes(lambda, closing_time, rng), std::runtime_error);
-//     }
-//     {
-//     INFO("closing_time = 5, moderate lambda = 0.5, seed = 0");
-//         std::mt19937 rng = initializeRng(0);
-//         double lambda = 0.5;
-//         int    closing_time = 5;
+        // The barista list should be: Alan, Bella, Carlos, Daisy and Emma.
+        const std::string expectedBaristaLine = "Your baristas today are Alan, Bella, Carlos, Daisy and Emma.\n\n";
 
-//         std::vector<int> arrivals = generateArrivalTimes(lambda, closing_time, rng);
-//         CHECK(arrivals.size() == 7);
-//         CHECK(arrivals[0] >= 0);
-//         CHECK(arrivals[0] <= closing_time);
-//         for (std::size_t i = 1; i < arrivals.size(); ++i) {
-//             CHECK(arrivals[i] >= 0);
-//             CHECK(arrivals[i] <= closing_time);
-//             CHECK(arrivals[i] >= arrivals[i - 1]);
-//         }
-//         CHECK(arrivals[0] == 1);
-//         CHECK(arrivals[1] == 1);
-//         CHECK(arrivals[2] == 1);
-//         CHECK(arrivals[3] == 1);
-//         CHECK(arrivals[4] == 1);
-//         CHECK(arrivals[5] == 2);
-//         CHECK(arrivals[6] == 4);
-//     }
+        CHECK(out.find(expectedHeader) != std::string::npos);
+        CHECK(out.find(expectedBaristaLine) != std::string::npos);
+    }
+}
+
+// // generateArrivalTimes tests
+/*
+TEST_CASE("generateArrivalTimes() function", "[5 points]")
+{
+    {
+    INFO("generateArrivalTimes() function with invalid range.");
+        std::mt19937 rng = initializeRng(0);
+        double lambda = 0;
+        int    closing_time = 5;
+        CHECK_THROWS_AS(generateArrivalTimes(lambda, closing_time, rng), std::runtime_error);
+        lambda = -0.5;
+        CHECK_THROWS_AS(generateArrivalTimes(lambda, closing_time, rng), std::runtime_error);
+        lambda = 0.5;
+        closing_time = 0;
+        CHECK_THROWS_AS(generateArrivalTimes(lambda, closing_time, rng), std::runtime_error);
+        closing_time = -10;
+        CHECK_THROWS_AS(generateArrivalTimes(lambda, closing_time, rng), std::runtime_error);
+    }
+    {
+    INFO("closing_time = 5, moderate lambda = 0.5, seed = 0");
+        std::mt19937 rng = initializeRng(0);
+        double lambda = 0.5;
+        int    closing_time = 5;
+
+        std::vector<int> arrivals = generateArrivalTimes(lambda, closing_time, rng);
+        CHECK(arrivals.size() == 7);
+        CHECK(arrivals[0] >= 0);
+        CHECK(arrivals[0] <= closing_time);
+        for (std::size_t i = 1; i < arrivals.size(); ++i) {
+            CHECK(arrivals[i] >= 0);
+            CHECK(arrivals[i] <= closing_time);
+            CHECK(arrivals[i] >= arrivals[i - 1]);
+        }
+        CHECK(arrivals[0] == 1);
+        CHECK(arrivals[1] == 1);
+        CHECK(arrivals[2] == 1);
+        CHECK(arrivals[3] == 1);
+        CHECK(arrivals[4] == 1);
+        CHECK(arrivals[5] == 2);
+        CHECK(arrivals[6] == 4);
+    }
 
 
-//     {
-//     INFO("closing_time = 60, lamnba = 0.2, seed = 0");
-//         std::mt19937 rng = initializeRng(0);
-//         double lambda = 0.2;
-//         int    closing_time = 60;
+    {
+    INFO("closing_time = 60, lamnba = 0.2, seed = 0");
+        std::mt19937 rng = initializeRng(0);
+        double lambda = 0.2;
+        int    closing_time = 60;
 
-//         std::vector<int> arrivals = generateArrivalTimes(lambda, closing_time, rng);
+        std::vector<int> arrivals = generateArrivalTimes(lambda, closing_time, rng);
 
-//         CHECK(arrivals.size() == 18);
-//         CHECK(arrivals[0] >= 0);
-//         CHECK(arrivals[0] <= closing_time);
-//         for (std::size_t i = 1; i < arrivals.size(); ++i) {
-//             CHECK(arrivals[i] >= 0);
-//             CHECK(arrivals[i] <= closing_time);
-//             CHECK(arrivals[i] >= arrivals[i - 1]);
-//         }
-//         CHECK(arrivals[0] == 2);
-//         CHECK(arrivals[1] == 2);
-//         CHECK(arrivals[2] == 2);
-//         CHECK(arrivals[7] == 28);
-//         CHECK(arrivals[17] == 56);
-//     }
+        CHECK(arrivals.size() == 18);
+        CHECK(arrivals[0] >= 0);
+        CHECK(arrivals[0] <= closing_time);
+        for (std::size_t i = 1; i < arrivals.size(); ++i) {
+            CHECK(arrivals[i] >= 0);
+            CHECK(arrivals[i] <= closing_time);
+            CHECK(arrivals[i] >= arrivals[i - 1]);
+        }
+        CHECK(arrivals[0] == 2);
+        CHECK(arrivals[1] == 2);
+        CHECK(arrivals[2] == 2);
+        CHECK(arrivals[7] == 28);
+        CHECK(arrivals[17] == 56);
+    }
 
-//     {
-//         INFO("closing_time = 60, lamnba = 0.2, seed = 1");
-//             std::mt19937 rng = initializeRng(1);
-//             double lambda = 0.2;
-//             int    closing_time = 60;
+    {
+        INFO("closing_time = 60, lamnba = 0.2, seed = 1");
+            std::mt19937 rng = initializeRng(1);
+            double lambda = 0.2;
+            int    closing_time = 60;
 
-//             std::vector<int> arrivals = generateArrivalTimes(lambda, closing_time, rng);
+            std::vector<int> arrivals = generateArrivalTimes(lambda, closing_time, rng);
 
-//             CHECK(arrivals.size() == 22);
-//             CHECK(arrivals[0] == 0);
-//             CHECK(arrivals[1] == 0);
-//             CHECK(arrivals[2] == 10);
-//             CHECK(arrivals[7] == 27);
-//             CHECK(arrivals[17] == 56);
-//     }
+            CHECK(arrivals.size() == 22);
+            CHECK(arrivals[0] == 0);
+            CHECK(arrivals[1] == 0);
+            CHECK(arrivals[2] == 10);
+            CHECK(arrivals[7] == 27);
+            CHECK(arrivals[17] == 56);
+    }
 
-//     {
-//         INFO("Edge case, lambda close to 0, closing_time = 10, seed = 3");
-//             std::mt19937 rng = initializeRng(3);
-//             double lambda = 0.001;   // almost no arrivals during the day
-//             int    closing_time = 10;
+    {
+        INFO("Edge case, lambda close to 0, closing_time = 10, seed = 3");
+            std::mt19937 rng = initializeRng(3);
+            double lambda = 0.001;   // almost no arrivals during the day
+            int    closing_time = 10;
 
-//             std::vector<int> arrivals = generateArrivalTimes(lambda, closing_time, rng);
+            std::vector<int> arrivals = generateArrivalTimes(lambda, closing_time, rng);
 
-//             CHECK(arrivals.size() == 0);
-//     }
-// }
-// */
+            CHECK(arrivals.size() == 0);
+    }
+}
+
 // // // completeOrder tests
 // /*
 // TEST_CASE("completeOrder() function", "[5 points]")
