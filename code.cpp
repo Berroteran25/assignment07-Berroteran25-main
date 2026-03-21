@@ -237,8 +237,9 @@ vector<int> generateArrivalTimes(double lambda, int closing_time, std::mt19937& 
         if (current_time >= closing_time) {
             break;
         }
-
+        if (current_time > 0){
         arrivals.push_back(current_time);
+        }
     }
 
     return arrivals;
